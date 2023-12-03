@@ -1,0 +1,9 @@
+# レビュアーの自動アサイン設定
+addReviewers: true
+
+# author（PRを出す人）をアサイニーに指定
+# addAssignees: author
+
+# レビュアーに指定するGitHub user nameを指定
+reviewers:
+  - chida09
