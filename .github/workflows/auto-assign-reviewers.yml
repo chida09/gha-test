@@ -1,0 +1,26 @@
+name: Auto Assign Reviewers
+
+on: [pull_request]
+
+jobs:
+  auto-assign-reviewers:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # 全ての履歴をフェッチ
+
+    - name: List commits different from develop
+      id: list-commits
+      run: |
+        git fetch origin develop
+        commits=$(git log --pretty="%an <%ae>" origin/develop..HEAD | sort | uniq)
+        echo "::set-output name=commits::$commits"
+
+    - name: Auto Assign Reviewers
+      uses: kentaro-m/auto-assign-action@v1.1.2
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        configuration-path: ".github/auto_assign.yml"
+        reviewers: ${{ steps.list-commits.outputs.commits }}
