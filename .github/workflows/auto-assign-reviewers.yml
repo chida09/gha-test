@@ -11,11 +11,11 @@ jobs:
       with:
         fetch-depth: 0  # 全ての履歴をフェッチ
 
-    - name: List commits different from develop
+    - name: List commits different from main
       id: list-commits
       run: |
-        git fetch origin develop
-        commits=$(git log --pretty="%an <%ae>" origin/develop..HEAD | sort | uniq)
+        git fetch origin main
+        commits=$(git log --pretty="%an" origin/main..HEAD | sort | uniq)
         echo "::set-output name=commits::$commits"
 
     - name: Auto Assign Reviewers
