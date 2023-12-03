@@ -15,7 +15,7 @@ jobs:
       id: list-commits
       run: |
         git fetch origin develop
-        commits=$(git log --pretty="%an <%ae>" origin/develop..HEAD | sort | uniq)
+        commits=$(git log --pretty="%an" origin/develop..HEAD | sort | uniq)
         echo "::set-output name=commits::$commits"
 
     - name: Auto Assign Reviewers
