@@ -6,4 +6,4 @@ addReviewers: true
 
 # レビュアーに指定するGitHub user nameを指定
 reviewers:
-  - chida09
+  - ${{ steps.list-commits.outputs.commits }}
