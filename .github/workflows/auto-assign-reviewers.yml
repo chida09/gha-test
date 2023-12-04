@@ -11,25 +11,28 @@ jobs:
         with:
           fetch-depth: 0  # 全ての履歴をフェッチ
 
-      # - name: List commits different from main and get GitHub usernames
-      #   id: list-commits
-      #   run: |
-      #     git fetch origin main
-      #     echo "Commits different from main:"
-      #     git log --pretty="%an <%ae>" origin/main..HEAD | sort | uniq
-      #     echo "GitHub usernames for the commits:"
-      #     usernames=()
-      #     for email in $(git log --pretty="%ae" origin/main..HEAD | sort | uniq); do
-      #       user=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-      #                     "https://api.github.com/search/users?q=$email+in:email" | jq -r '.items[0].login')
-      #       if [ ! -z "$user" ]; then
-      #         usernames+=($user)
-      #       fi
-      #     done
-      #     echo "::set-output name=usernames::${usernames[*]}"
+      - name: Get GitHub usernames and set as environment variable
+        run: |
+          git fetch origin main
+          echo "Commits different from main:"
+          git log --pretty="%an <%ae>" origin/main..HEAD | sort | uniq
+          echo "GitHub usernames for the commits:"
+          usernames=()
+          for email in $(git log --pretty="%ae" origin/main..HEAD | sort | uniq); do
+            user=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                          "https://api.github.com/search/users?q=$email+in:email" | jq -r '.items[0].login')
+            if [ ! -z "$user" ]; then
+              usernames+=("$user")
+            fi
+          done
+          echo "REVIEWERS=${usernames[*]}" >> $GITHUB_ENV
 
-      - name: Auto Assign Reviewers
-        uses: kentaro-m/auto-assign-action@v1.1.2
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          configuration-path: ".github/auto_assign.yml"
+      - name: Assign reviewers to pull request
+        run: |
+          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          REVIEWERS_ARRAY=(${REVIEWERS})
+          REVIEWERS_JSON=$(jq -n --argjson users "${REVIEWERS_ARRAY[@]}" '$users')
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+               -H "Content-Type: application/json" \
+               -d "{\"reviewers\":$REVIEWERS_JSON}" \
+               "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/requested_reviewers"
