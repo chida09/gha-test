@@ -30,11 +30,11 @@ jobs:
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          IFS=' ' read -r -a REVIEWERS_ARRAY <<< "${REVIEWERS}"
-          echo "IFS: ${IFS}"
-          REVIEWERS_JSON=$(jq -nc '$ARGS.positional | map({login: .})' --args -- "${REVIEWERS_ARRAY[@]}")
-          echo "REVIEWERS_JSON: ${REVIEWERS_JSON}"
+          REVIEWERS_ARRAY=(${REVIEWERS}) # This assumes REVIEWERS is a space-separated string
+          REVIEWERS_JSON=$(jq -nc '[ $ARGS.positional[] ]' --args "${REVIEWERS_ARRAY[@]}")
+          echo "REVIEWERS_JSON: $REVIEWERS_JSON"
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Content-Type: application/json" \
                 -d "{\"reviewers\":$REVIEWERS_JSON}" \
                 "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}/requested_reviewers"
+      
