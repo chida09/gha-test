@@ -7,9 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 全ての履歴をフェッチ
+          fetch-depth: 0
 
       - name: Get GitHub usernames and set as environment variable
         run: |
