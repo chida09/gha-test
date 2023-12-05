@@ -33,7 +33,7 @@ jobs:
           REVIEWERS_ARRAY=(${REVIEWERS})
 
       - name: REVIEWERS_ARRAY
-        run: echo "REVIEWERS_ARRAY"
+        run: echo "${REVIEWERS_ARRAY}"
 
       - name: run
         run: |
@@ -45,4 +45,4 @@ jobs:
 
 
       - name: REVIEWERS_JSON
-        run: echo "REVIEWERS_JSON"
+        run: echo "${REVIEWERS_JSON}"
