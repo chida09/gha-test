@@ -22,7 +22,7 @@ jobs:
                           "https://api.github.com/repos/${{ github.repository }}/commits/$sha" | jq -r '.author.login')
             if [ ! -z "$user" ] && [ "$user" != "null" ]; then
               usernames+=("$user")
-              echo "Found GitHub user name: $user"
+              echo "Found GitHub user: $user"
             fi
           done
           echo "REVIEWERS=${usernames[*]}" >> $GITHUB_ENV
@@ -34,7 +34,7 @@ jobs:
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           REVIEWERS_ARRAY=($(echo "${REVIEWERS}" | tr ' ' '\n' | sort | uniq))
-          REVIEWERS_JSON=$(jq -n --argjson users "$(printf '%s\n' "${REVIEWERS_ARRAY[@]}" | jq -rsc '. | map({login: .})')")
+          REVIEWERS_JSON=$(jq -n --argjson users "$(printf '%s\n' "${REVIEWERS_ARRAY[@]}" | jq -s 'map({login: .})')" '$users')
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                -H "Content-Type: application/json" \
                -d "{\"reviewers\":$REVIEWERS_JSON}" \
