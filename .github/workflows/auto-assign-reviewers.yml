@@ -11,19 +11,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get GitHub usernames and set as environment variable
+      - name: Get GitHub usernames from commit SHAs
         run: |
           git fetch origin main
           echo "Commits different from main:"
-          git log --pretty="%an <%ae>" origin/main..HEAD | sort | uniq
-          echo "GitHub usernames for the commits:"
+          commits=$(git log --pretty="%H" origin/main..HEAD | sort | uniq)
           usernames=()
-          for email in $(git log --pretty="%ae" origin/main..HEAD | sort | uniq); do
+          for sha in $commits; do
             user=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                          "https://api.github.com/search/users?q=$email+in:email" | jq -r '.items[0].login')
-            if [ ! -z "$user" ]; then
+                          "https://api.github.com/repos/${{ github.repository }}/commits/$sha" | jq -r '.author.login')
+            if [ ! -z "$user" ] && [ "$user" != "null" ]; then
               usernames+=("$user")
-              echo "Found GitHub user: $user"
+              echo "Found GitHub user name: $user"
             fi
           done
           echo "REVIEWERS=${usernames[*]}" >> $GITHUB_ENV
@@ -34,13 +33,9 @@ jobs:
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          echo PR_NUMBER
-          REVIEWERS_ARRAY=(${REVIEWERS})
-          REVIEWERS_JSON=$(jq -n --argjson users "${REVIEWERS_ARRAY[@]}" '$users')
+          REVIEWERS_ARRAY=($(echo "${REVIEWERS}" | tr ' ' '\n' | sort | uniq))
+          REVIEWERS_JSON=$(jq -n --argjson users "$(printf '%s\n' "${REVIEWERS_ARRAY[@]}" | jq -rsc '. | map({login: .})')")
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                -H "Content-Type: application/json" \
                -d "{\"reviewers\":$REVIEWERS_JSON}" \
-               "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/requested_reviewers"
-
-      - name: repository name
-        run: echo ${{ github.repository }}
+               "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}/requested_reviewers"
