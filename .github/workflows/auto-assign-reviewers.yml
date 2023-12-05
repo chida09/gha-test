@@ -27,14 +27,11 @@ jobs:
           done
           echo "REVIEWERS=${usernames[*]}" >> $GITHUB_ENV
 
-      - name: Print PR Number
-        run: echo "PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")"
-
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          REVIEWERS_ARRAY=($(echo "${REVIEWERS}" | tr ' ' '\n' | sort | uniq))
-          REVIEWERS_JSON=$(jq -n --argjson users "$(printf '%s\n' "${REVIEWERS_ARRAY[@]}" | jq -s 'map({login: .})')" '$users')
+          REVIEWERS_ARRAY=(${REVIEWERS})
+          REVIEWERS_JSON=$(jq -n --argjson users "$(jq -c . <<< "${REVIEWERS_ARRAY[@]}")" '$users')
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                -H "Content-Type: application/json" \
                -d "{\"reviewers\":$REVIEWERS_JSON}" \
