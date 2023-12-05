@@ -32,7 +32,9 @@ jobs:
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           REVIEWERS_ARRAY=(${REVIEWERS})
           echo "REVIEWERS_ARRAY: ${REVIEWERS_ARRAY[@]}"
-          REVIEWERS_JSON=$(jq -n --argjson users "$(printf '%s\n' ${REVIEWERS_ARRAY[@]} | jq -s 'map({login: .})')" '$users')
+          # REVIEWERS_ARRAYの各要素に対してJSONオブジェクトを作成し、それらを配列にまとめる
+          REVIEWERS_JSON=$(printf '%s\n' "${REVIEWERS_ARRAY[@]}" | jq -R . | jq -s 'map({login: .})')
+          echo "REVIEWERS_JSON: $REVIEWERS_JSON"
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Content-Type: application/json" \
                 -d "{\"reviewers\":$REVIEWERS_JSON}" \
