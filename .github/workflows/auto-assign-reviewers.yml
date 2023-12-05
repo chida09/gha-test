@@ -22,7 +22,7 @@ jobs:
                           "https://api.github.com/repos/${{ github.repository }}/commits/$sha" | jq -r '.author.login')
             if [ ! -z "$user" ] && [ "$user" != "null" ]; then
               usernames+=("$user")
-              echo "Found GitHub user name: $user"
+              echo "Found GitHub user: $user"
             fi
           done
           echo "REVIEWERS=${usernames[*]}" >> $GITHUB_ENV
