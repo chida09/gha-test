@@ -30,17 +30,12 @@ jobs:
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          PR_AUTHOR=$(jq --raw-output .pull_request.user.login "$GITHUB_EVENT_PATH") # プルリクエスト作成者のログイン名を取得
-
-          # REVIEWERS文字列を配列に変換し、プルリクエスト作成者を除外する
-          IFS=' ' read -r -a REVIEWERS_ARRAY <<< "${REVIEWERS}"
-          FILTERED_REVIEWERS_ARRAY=($(printf "%s\n" "${REVIEWERS_ARRAY[@]}" | grep -v "^$PR_AUTHOR$"))
-
-          # 除外された配列からJSON配列を作成
-          REVIEWERS_JSON=$(jq -nc '$ARGS.positional | map({login: .})' --args -- "${FILTERED_REVIEWERS_ARRAY[@]}")
+          # REVIEWERS変数を文字列の配列に変換します。この例ではREVIEWERSはスペースで区切られた文字列と仮定しています。
+          REVIEWERS_ARRAY=(${REVIEWERS})
+          # jqを使用して、ログイン名のみを含む文字列の配列に変換します。
+          REVIEWERS_JSON=$(jq -nc '[ $ARGS.positional[] ]' --args "${REVIEWERS_ARRAY[@]}")
           echo "REVIEWERS_JSON: $REVIEWERS_JSON"
-
-          # レビュアーを割り当てるためのAPIコールを行う
+          # APIコールを行い、レビュアーを割り当てます。
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Content-Type: application/json" \
                 -d "{\"reviewers\":$REVIEWERS_JSON}" \
