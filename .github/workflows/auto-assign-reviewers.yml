@@ -30,11 +30,10 @@ jobs:
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          REVIEWERS_ARRAY=(${REVIEWERS})
-          echo "REVIEWERS_ARRAY: ${REVIEWERS_ARRAY[@]}"
-          # REVIEWERS_ARRAYの各要素に対してJSONオブジェクトを作成し、それらを配列にまとめる
-          REVIEWERS_JSON=$(printf '%s\n' "${REVIEWERS_ARRAY[@]}" | jq -R . | jq -s 'map({login: .})')
-          echo "REVIEWERS_JSON: $REVIEWERS_JSON"
+          # REVIEWERS環境変数から重複を排除して配列を作成する
+          IFS=' ' read -r -a REVIEWERS_ARRAY <<< "$(echo "${REVIEWERS}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+          # 配列をJSON配列に変換する
+          REVIEWERS_JSON=$(jq -nc --argjson users "${REVIEWERS_ARRAY[@]}" '$users')
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Content-Type: application/json" \
                 -d "{\"reviewers\":$REVIEWERS_JSON}" \
