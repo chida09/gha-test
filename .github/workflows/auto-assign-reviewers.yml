@@ -31,7 +31,7 @@ jobs:
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           IFS=' ' read -r -a REVIEWERS_ARRAY <<< "${REVIEWERS}"
-          choe "IFS: ${IFS}"
+          echo "IFS: ${IFS}"
           REVIEWERS_JSON=$(jq -nc '$ARGS.positional | map({login: .})' --args -- "${REVIEWERS_ARRAY[@]}")
           echo "REVIEWERS_JSON: ${REVIEWERS_JSON}"
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
