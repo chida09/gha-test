@@ -27,14 +27,21 @@ jobs:
           done
           echo "REVIEWERS=${usernames[*]}" >> $GITHUB_ENV
 
-      - name: Assign reviewers to pull request
-        run: |
-          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          REVIEWERS_ARRAY=(${REVIEWERS}) # This assumes REVIEWERS is a space-separated string
-          REVIEWERS_JSON=$(jq -nc '[ $ARGS.positional[] ]' --args "${REVIEWERS_ARRAY[@]}")
-          echo "REVIEWERS_JSON: $REVIEWERS_JSON"
-          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                -H "Content-Type: application/json" \
-                -d "{\"reviewers\":$REVIEWERS_JSON}" \
-                "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}/requested_reviewers"
-      
+          - name: Assign reviewers to pull request
+          run: |
+            PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+            PR_AUTHOR=$(jq --raw-output .pull_request.user.login "$GITHUB_EVENT_PATH") # プルリクエスト作成者のログイン名を取得
+
+            # REVIEWERS文字列を配列に変換し、プルリクエスト作成者を除外する
+            IFS=' ' read -r -a REVIEWERS_ARRAY <<< "${REVIEWERS}"
+            FILTERED_REVIEWERS_ARRAY=($(printf "%s\n" "${REVIEWERS_ARRAY[@]}" | grep -v "^$PR_AUTHOR$"))
+
+            # 除外された配列からJSON配列を作成
+            REVIEWERS_JSON=$(jq -nc '$ARGS.positional | map({login: .})' --args -- "${FILTERED_REVIEWERS_ARRAY[@]}")
+            echo "REVIEWERS_JSON: $REVIEWERS_JSON"
+
+            # レビュアーを割り当てるためのAPIコールを行う
+            curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                 -H "Content-Type: application/json" \
+                 -d "{\"reviewers\":$REVIEWERS_JSON}" \
+                 "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}/requested_reviewers"
