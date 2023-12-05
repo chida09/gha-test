@@ -1,9 +1,9 @@
 # レビュアーの自動アサイン設定
-addReviewers: true
+# addReviewers: true
 
 # author（PRを出す人）をアサイニーに指定
 # addAssignees: author
 
 # レビュアーに指定するGitHub user nameを指定
-reviewers:
-  - ${{ steps.list-commits.outputs.commits }}
+# reviewers:
+#  - ${{ steps.list-commits.outputs.commits }}

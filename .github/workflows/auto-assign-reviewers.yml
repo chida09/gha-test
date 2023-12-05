@@ -7,9 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 全ての履歴をフェッチ
+          fetch-depth: 0
 
       - name: Get GitHub usernames and set as environment variable
         run: |
@@ -23,16 +23,24 @@ jobs:
                           "https://api.github.com/search/users?q=$email+in:email" | jq -r '.items[0].login')
             if [ ! -z "$user" ]; then
               usernames+=("$user")
+              echo "Found GitHub user: $user"
             fi
           done
           echo "REVIEWERS=${usernames[*]}" >> $GITHUB_ENV
 
+      - name: Print PR Number
+        run: echo "PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")"
+
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          echo PR_NUMBER
           REVIEWERS_ARRAY=(${REVIEWERS})
           REVIEWERS_JSON=$(jq -n --argjson users "${REVIEWERS_ARRAY[@]}" '$users')
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                -H "Content-Type: application/json" \
                -d "{\"reviewers\":$REVIEWERS_JSON}" \
                "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/requested_reviewers"
+
+      - name: repository name
+        run: echo ${{ github.repository }}
