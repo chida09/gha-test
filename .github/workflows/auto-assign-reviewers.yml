@@ -20,7 +20,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      # 本来はReleasePRに対して実行するが、お試しでやりたいので専用のPRを作成している
+      # 来はReleasePRに対して実行するが、お試しでやりたいので専用のPRを作成している
       - name: Create Pull Request
         run: |
           branch="test-auto-assign-reviewers-$(date +'%Y-%m-%d-%H-%M-%S')"
