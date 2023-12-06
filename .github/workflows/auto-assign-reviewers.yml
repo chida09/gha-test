@@ -20,7 +20,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      # 本来はReleasePRに対して実行するが、お試しでやりたいので専用のPRを作成している
+      # 来はReleasePRに対して実行するが、お試しでやりたいので専用のPRを作成している
       - name: Create Pull Request
         run: |
           branch="test-auto-assign-reviewers-$(date +'%Y-%m-%d-%H-%M-%S')"
@@ -55,6 +55,7 @@ jobs:
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_ENV
           FORMATTED_REVIEWERS=$(printf "\"%s\"\n" "${REVIEWERS[@]}" | sort -u | jq -sc .)
 
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
