@@ -25,7 +25,7 @@ jobs:
           response=$(curl -X POST https://api.github.com/repos/${{ github.repository }}/pulls \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d "{\"base\":\"master\",\"head\":\"${GITHUB_REF#refs/heads/}\",\"title\":\"Auto Assign Reviewers Test\"}")
+            -d '{"base":"master","head":"${GITHUB_REF#refs/heads/}","title":"Auto Assign Reviewers Test"})
           echo "Response: $response"
 
       # ュアーを指定するために、GitHubのusernameを取得している
