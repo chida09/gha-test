@@ -51,7 +51,7 @@ jobs:
 
           echo "REVIEWERS=${usernames[*]}" >> $GITHUB_ENV
 
-      # NOTE: https://docs.github.com/ja/rest/pulls/review-requests?apiVersion=2022-11-28
+      # NOE: https://docs.github.com/ja/rest/pulls/review-requests?apiVersion=2022-11-28
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
