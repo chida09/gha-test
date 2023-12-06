@@ -20,16 +20,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      # 本来はReleasePRに対して実行するが、お試しでやりたいので専用のPRを作成している
-      - name: Create Pull Request
-        run: |
-          branch="test-auto-assign-reviewers-$(date +'%Y-%m-%d-%H-%M-%S')"
-
-          response=$(curl -X POST https://api.github.com/repos/Findy/Excalibur/pulls \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{"base":"master","head":"$branch","title":"Auto Assign Reviewers Test"}')
-
       # レビュアーを指定するために、GitHubのusernameを取得している
       # NOTE: https://docs.github.com/ja/rest/commits/commits?apiVersion=2022-11-28#list-commits
       - name: Get GitHub usernames from commit SHAs
