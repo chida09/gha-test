@@ -55,7 +55,7 @@ jobs:
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          echo "PR_NUMBER:${PR_NUMBER}"
+          echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_ENV
           FORMATTED_REVIEWERS=$(printf "\"%s\"\n" "${REVIEWERS[@]}" | sort -u | jq -sc .)
 
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
