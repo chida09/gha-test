@@ -1,39 +1,63 @@
 name: Auto Assign Reviewers
 
-on: [pull_request, workflow_dispatch]
+on:
+  workflow_dispatch:
+    push:
+      branches:
+        - test-auto-assign-reviewers-*
+
+env:
+  TZ: 'Asia/Tokyo'
 
 jobs:
   auto-assign-reviewers:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      # 本来はReleasePRに対して実行するが、お試しでやりたいので専用のPRを作成している
+      - name: Create Pull Request
+        run: |
+          branch=test-auto-assign-reviewers$-(date +'%Y-%m-%d-%H-%M-%S')
+
+          response=$(curl -X POST https://api.github.com/repos/Findy/Excalibur/pulls \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"base":"master","head":"$branch","title":"Auto Assign Reviewers Test"}')
+
+      # レビュアーを指定するために、GitHubのusernameを取得している
+      # NOTE: https://docs.github.com/ja/rest/commits/commits?apiVersion=2022-11-28#list-commits
       - name: Get GitHub usernames from commit SHAs
         run: |
-          git fetch origin main
-          echo "Commits different from mai:"
-          commits=$(git log --pretty="%H" origin/main..HEAD | sort | uniq)
+          git fetch origin develop
+          commits=$(git log --pretty="%H" origin/develop..HEAD)
+
+          ignore="genbaneko44"
           usernames=()
+
           for sha in $commits; do
             user=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                           "https://api.github.com/repos/${{ github.repository }}/commits/$sha" | jq -r '.author.login')
-            if [ ! -z "$user" ] && [ "$user" != "null" ]; then
+            if [ "$user" ] && [ "$user" != "null" ] && [ "$user" != "$ignore" ] && ! [[ " ${usernames[*]} " =~ " $user " ]];; then
               usernames+=("$user")
               echo "Found GitHub user: $user"
             fi
           done
+
           echo "REVIEWERS=${usernames[*]}" >> $GITHUB_ENV
 
+      # NOTE: https://docs.github.com/ja/rest/pulls/review-requests?apiVersion=2022-11-28
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          IFS=' ' read -r -a REVIEWERS_ARRAY <<< "$(echo "${REVIEWERS}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
-          REVIEWERS_JSON=$(jq -nc --argjson users "$(echo "${REVIEWERS_ARRAY[@]}" | jq -aRs 'split(" ") | map({login: .})')")
-          echo "REVIEWERS_JSON: ${REVIEWERS_JSON}"
+          FORMATTED_REVIEWERS=$(printf "\"%s\"\n" "${REVIEWERS[@]}" | sort -u | jq -sc .)
+
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Content-Type: application/json" \
-                -d "{\"reviewers\":$REVIEWERS_JSON}" \
+                -d "{\"reviewers\":$FORMATTED_REVIEWERS}" \
                 "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}/requested_reviewers"
