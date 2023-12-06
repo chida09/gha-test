@@ -30,7 +30,7 @@ jobs:
           echo "Response: $response"
 
 
-      # ーを指定するために、GitHubのusernameを取得している
+      # を指定するために、GitHubのusernameを取得している
       # NOTE: https://docs.github.com/ja/rest/commits/commits?apiVersion=2022-11-28#list-commits
       - name: Get GitHub usernames from commit SHAs
         run: |
