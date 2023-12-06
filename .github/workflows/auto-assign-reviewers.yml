@@ -25,12 +25,12 @@ jobs:
           branch=${GITHUB_REF#refs/heads/}
           response=$(curl -X POST https://api.github.com/repos/${{ github.repository }}/pulls \
             -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GENBANEKO_GITHUB_RELEASE_TOKEN }}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d "{\"base\":\"master\",\"head\":\"$branch\",\"title\":\"Auto Assign Reviewers Test\"}")
           echo "Response: $response"
 
 
-      # ーを指定するために、GitHubのusernameを取得している
+      # を指定するために、GitHubのusernameを取得している
       # NOTE: https://docs.github.com/ja/rest/commits/commits?apiVersion=2022-11-28#list-commits
       - name: Get GitHub usernames from commit SHAs
         run: |
