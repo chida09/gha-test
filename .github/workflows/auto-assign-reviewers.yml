@@ -26,7 +26,7 @@ jobs:
           response=$(curl -X POST https://api.github.com/repos/${{ github.repository }}/pulls \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.GENBANEKO_GITHUB_RELEASE_TOKEN }}" \
-            -d '{"base":"master","head":"$branch","title":"Auto Assign Reviewers Test"})
+            -d "{\"base\":\"master\",\"head\":\"$branch\",\"title\":\"Auto Assign Reviewers Test\"}")
           echo "Response: $response"
 
 
