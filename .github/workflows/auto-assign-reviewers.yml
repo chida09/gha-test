@@ -22,7 +22,7 @@ jobs:
 
       - name: Create Pull Request
         run: |
-          response=$(curl -X POST https://api.github.com/repos/Findy/Excalibur/pulls \
+          response=$(curl -X POST https://api.github.com/repos/${{ github.repository }}/pulls \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{"base":"master","head":"${GITHUB_REF#refs/heads/}","title":"Auto Assign Reviewers Test"}')
