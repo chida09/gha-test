@@ -23,7 +23,7 @@ jobs:
       # 本来はReleasePRに対して実行するが、お試しでやりたいので専用のPRを作成している
       - name: Create Pull Request
         run: |
-          branch=test-auto-assign-reviewers$-(date +'%Y-%m-%d-%H-%M-%S')
+          branch="test-auto-assign-reviewers-$(date +'%Y-%m-%d-%H-%M-%S')"
 
           response=$(curl -X POST https://api.github.com/repos/Findy/Excalibur/pulls \
             -H "Accept: application/vnd.github.v3+json" \
@@ -51,7 +51,7 @@ jobs:
 
           echo "REVIEWERS=${usernames[*]}" >> $GITHUB_ENV
 
-      # NOTE: https://docs.github.com/ja/rest/pulls/review-requests?apiVersion=2022-11-28
+      # NOE: https://docs.github.com/ja/rest/pulls/review-requests?apiVersion=2022-11-28
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
