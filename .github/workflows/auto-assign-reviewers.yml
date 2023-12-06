@@ -26,6 +26,7 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{"base":"master","head":"${GITHUB_REF#refs/heads/}","title":"Auto Assign Reviewers Test"}')
+          echo "Response: $response"
 
       # ビュアーを指定するために、GitHubのusernameを取得している
       # NOTE: https://docs.github.com/ja/rest/commits/commits?apiVersion=2022-11-28#list-commits
@@ -52,6 +53,7 @@ jobs:
       - name: Assign reviewers to pull request
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          echo "PR_NUMBER: $PR_NUMBER"
           FORMATTED_REVIEWERS=$(printf "\"%s\"\n" "${REVIEWERS[@]}" | sort -u | jq -sc .)
 
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
