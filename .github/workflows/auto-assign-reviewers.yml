@@ -23,7 +23,7 @@ jobs:
       # 本来はReleasePRに対して実行するが、お試しでやりたいので専用のPRを作成している
       - name: Create Pull Request
         run: |
-          branch=test-auto-assign-reviewers$-(date +'%Y-%m-%d-%H-%M-%S')
+          branch="test-auto-assign-reviewers-$(date +'%Y-%m-%d-%H-%M-%S')"
 
           response=$(curl -X POST https://api.github.com/repos/Findy/Excalibur/pulls \
             -H "Accept: application/vnd.github.v3+json" \
