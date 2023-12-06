@@ -43,7 +43,7 @@ jobs:
           for sha in $commits; do
             user=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                           "https://api.github.com/repos/${{ github.repository }}/commits/$sha" | jq -r '.author.login')
-            if [ "$user" ] && [ "$user" != "null" ] && [ "$user" != "$ignore" ] && ! [[ " ${usernames[*]} " =~ " $user " ]];; then
+            if [ "$user" ] && [ "$user" != "null" ] && [ "$user" != "$ignore" ] && ! [[ " ${usernames[*]} " =~ " $user " ]]; then
               usernames+=("$user")
               echo "Found GitHub user: $user"
             fi
